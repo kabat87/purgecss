@@ -1,7 +1,8 @@
-import typescript from "@wessberg/rollup-plugin-ts";
+import json from "@rollup/plugin-json";
 import path from "path";
 import { rollup } from "rollup";
 import { terser } from "rollup-plugin-terser";
+import typescript from "rollup-plugin-ts";
 
 const packagesDirectory = path.resolve(__dirname, "./../packages");
 
@@ -40,6 +41,14 @@ const packages = [
   {
     name: "purgecss-from-pug",
     external: ["pug-lexer"],
+  },
+  {
+    name: "purgecss-from-jsx",
+    external: ["acorn", "acorn-walk", "acorn-jsx", "acorn-jsx-walk"],
+  },
+  {
+    name: "purgecss-from-tsx",
+    external: ["acorn", "@fullhuman/purgecss-from-jsx", "typescript"],
   },
 ];
 
@@ -80,6 +89,19 @@ async function build(): Promise<void> {
       "grunt-purgecss",
       "./tasks/purgecss.js"
     ),
+    format: "cjs",
+  });
+
+  // command line interface
+  const cliBundle = await rollup({
+    input: path.resolve(packagesDirectory, "./purgecss/src/bin.ts"),
+    plugins: [json(), typescript({ transpileOnly: true }), terser()],
+    external: [...packages[0].external, "commander"],
+  });
+  await cliBundle.write({
+    banner: "#!/usr/bin/env node",
+    exports: "auto",
+    file: path.resolve(packagesDirectory, "purgecss", "./bin/purgecss.js"),
     format: "cjs",
   });
 }

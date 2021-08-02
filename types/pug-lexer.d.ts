@@ -15,12 +15,6 @@ declare module "pug-lexer" {
     | "class"
     | "id";
 
-  interface Attribute {
-    escaped: boolean;
-    name: string;
-    val: string;
-  }
-
   interface Token {
     name: string;
     mustEscape: boolean;

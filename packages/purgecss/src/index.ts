@@ -23,12 +23,14 @@ import {
   Extractors,
   IgnoreType,
   Options,
+  PostCSSRoot,
   RawContent,
   RawCSS,
   ResultPurge,
   UserDefinedOptions,
   UserDefinedSafelist,
 } from "./types";
+import { matchAll } from "./utils";
 import VariablesStructure from "./VariablesStructure";
 
 export { defaultOptions } from "./options";
@@ -63,7 +65,7 @@ export async function setOptions(
 ): Promise<Options> {
   let options: Options;
   try {
-    const t = path.join(process.cwd(), configFile);
+    const t = path.resolve(process.cwd(), configFile);
     options = await import(t);
   } catch (err) {
     throw new Error(`${ERROR_CONFIG_FILE_LOADING} ${err.message}`);
@@ -243,20 +245,6 @@ function isInPseudoClass(selector: selectorParser.Node): boolean {
   );
 }
 
-export function matchAll(str: string, regexp: RegExp): RegExpMatchArray[] {
-  const matches: RegExpMatchArray[] = [];
-  str.replace(regexp, function () {
-    // eslint-disable-next-line prefer-rest-params
-    const args = arguments;
-    const match: RegExpMatchArray = Array.prototype.slice.call(args, 0, -2);
-    match.input = args[args.length - 1];
-    match.index = args[args.length - 2];
-    matches.push(match);
-    return str;
-  });
-  return matches;
-}
-
 function isPostCSSAtRule(node?: postcss.Node): node is postcss.AtRule {
   return node?.type === "atrule";
 }
@@ -360,7 +348,6 @@ class PurgeCSS {
     extractors: Extractors[]
   ): Promise<ExtractorResultSets> {
     const selectors = new ExtractorResultSets([]);
-
     for (const globfile of files) {
       let filesNames: string[] = [];
 
@@ -429,10 +416,10 @@ class PurgeCSS {
    * @param node node of postcss AST
    * @param selectors selectors used in content files
    */
-  private async evaluateRule(
+  private evaluateRule(
     node: postcss.Node,
     selectors: ExtractorResultSets
-  ): Promise<void> {
+  ): void {
     // exit if is in ignoring state activated by an ignore comment
     if (this.ignore) {
       return;
@@ -542,12 +529,8 @@ class PurgeCSS {
 
       const result: ResultPurge = {
         css: root.toString(),
-        file: typeof option === "string" ? option : undefined,
+        file: typeof option === "string" ? option : option.name,
       };
-
-      if (typeof option === "string") {
-        result.file = option;
-      }
 
       if (this.options.rejected) {
         result.rejected = Array.from(this.selectorsRemoved);
@@ -796,7 +779,7 @@ class PurgeCSS {
    * @param selectors selectors used in content files
    */
   public walkThroughCSS(
-    root: postcss.Root,
+    root: PostCSSRoot,
     selectors: ExtractorResultSets
   ): void {
     root.walk((node) => {

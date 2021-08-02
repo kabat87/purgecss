@@ -1,5 +1,6 @@
 import * as postcss from "postcss";
 
+export type PostCSSRoot = postcss.Root;
 export interface AtRules {
   fontFace: Array<{
     name: string;
@@ -16,6 +17,7 @@ export interface RawContent<T = string> {
 
 export interface RawCSS {
   raw: string;
+  name?: string;
 }
 
 export interface ExtractorResultDetailed {
