@@ -30,7 +30,7 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "purgecss": "^4.0.3"
+    "purgecss": "^6.0.0"
   },
   "devDependencies": {
     "@types/grunt": "^0.4.25",
