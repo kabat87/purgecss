@@ -36,7 +36,7 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "purgecss": "^4.0.3",
+    "purgecss": "^6.0.0",
     "webpack": "^5.4.0",
     "webpack-sources": "^2.0.0"
   },
